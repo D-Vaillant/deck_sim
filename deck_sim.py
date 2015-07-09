@@ -9,14 +9,14 @@
 __author__ = "David Vaillant"
 
 from random import shuffle
-from collections import defaultdict
+from collections import Counter
 
 class Deck():
     # Limits number of card symbols to 27.
     cardSymbols = {i+1 : chr(ord('A')+i) for i in range(26)}
     cardSymbols.update({0:'_'})
 
-    def __init__(self, sz, partArr = None, isShuffled = True):
+    def __init__(self, sz, partArr = None, isShuffled = False):
         self.size = sz
 
         self.partition = partArr or [sz]
@@ -33,7 +33,7 @@ class Deck():
             print("However, size was specified as ", self.size, ".')
             raise ArithmeticError("Partition too large!")
         elif partSum < self.size:
-            self.partition.append(self.size - partSum)
+            self.partition.insert(0, self.size - partSum)
         else: pass
         
     def generateCardArr(self):
@@ -45,7 +45,33 @@ class Deck():
         return dk
 
 class InductiveDeck(Deck):
-    pass
+    def main(self):
+        sampleSize, trialCount, symbolReqs = self.get_information()
+        
+        successList = [self.minimum_tester(self.run_trial(sampleSize), symbolReqs)
+                            for x in range(trialCount)]
+        print("Success rate: {0}%.".format((successList.count(True))/trialCount)
+
+    def get_information(self):
+        return 7, 50, {'A':2, 'B':4}
+
+    """ Adds probability methods which rely on running trials. """
+    def run_trial(self, sample_size):
+        shuffle(self.cards)
+        return Counter(self.cards[:sample_size])
+
+    def minimum_tester(self, trialResults, minRequired):
+        """ Takes a Counter from run_trial and a min. requirement dict, returns True or False. """
+        isSuccessful = None
+
+        for symbol, req in enumerate(minRequired):
+            if trialResults[symbol] < req: 
+                isSuccessful = False
+                break
+            else: 
+                isSuccessful = True
+
+        return isSuccessful
 
 class CombinatoricDeck(Deck):
     pass
@@ -65,28 +91,6 @@ def deck_creation(element_sizes, pop_size):
     of the distribution array matches the population size. 
     Creates a deck and iterates over sample_size cards to determine counts of
     each type of card. Returns a map from types to counts. '''
-def run_trial(element_sizes, pop_size, sample_size):
-    total = sum(element_sizes)
-    if total < pop_size:
-        element_sizes.append(pop_size - total)
-    deck = deck_creation(element_sizes, pop_size)
-    summary_dict = defaultdict(lambda: 0)
-    for x in deck[:sample_size]:
-        summary_dict[x] += 1
-    return summary_dict
-
-''' Takes two maps from types to counts, a sample and a requirement dictionary.
-    Returns true if the each key in the sample dictionary is greater than
-    the corresponding key in the requirement dictionary. '''
-def minimum_tester(results, requirement):
-    successes = 0
-    for sample_dict in results:
-        glass = True
-        for x in requirement:
-            if sample_dict[x] < requirement[x]: glass = False
-        if glass: successes += 1
-    return successes
-
 ''' Takes variables via command line input and calculates percentage of
     successes. '''
 def main():
