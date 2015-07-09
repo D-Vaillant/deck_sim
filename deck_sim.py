@@ -11,6 +11,46 @@ __author__ = "David Vaillant"
 from random import shuffle
 from collections import defaultdict
 
+class Deck():
+    # Limits number of card symbols to 27.
+    cardSymbols = {i+1 : chr(ord('A')+i) for i in range(26)}
+    cardSymbols.update({0:'_'})
+
+    def __init__(self, sz, partArr = None, isShuffled = True):
+        self.size = sz
+
+        self.partition = partArr or [sz]
+        self.partitionChecker() 
+        
+        self.cards = self.generateCardArr()
+        if isShuffled: shuffle(self.cards)
+
+    def partitionChecker(self):
+        partSum = sum(self.partition)
+
+        if partSum > self.size:
+            print("Partition summed to ", partSum ".")
+            print("However, size was specified as ", self.size, ".')
+            raise ArithmeticError("Partition too large!")
+        elif partSum < self.size:
+            self.partition.append(self.size - partSum)
+        else: pass
+        
+    def generateCardArr(self):
+        """ Takes self.size and self.partition and generates a deck. """
+
+        dk = []
+        for i, x in self.partition:
+            dk.extend([cardSymbols[i] * x)
+        return dk
+
+class InductiveDeck(Deck):
+    pass
+
+class CombinatoricDeck(Deck):
+    pass
+
+    ### BELOW LIES ONLY DESPAIR ###
 ''' Returns a shuffled deck with pop_size elements according to the
     distribution in element_sizes. '''
 def deck_creation(element_sizes, pop_size):

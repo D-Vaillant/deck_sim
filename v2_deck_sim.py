@@ -19,7 +19,7 @@
         seq_gen(): Uses recursion to generate hit_array.
                    See functional outline.
             
-    Functional Outline:
+    Outlining the Mathematics:
         We solve the combinatorial problem of calculating the proportion of 
         subsets of size K with certain properties out of the set D of all
         subsets of size K.
@@ -30,6 +30,10 @@
         Example: If P = {p_1, p_2}, we could find out how many hands of size
                  5 contain at least 2 elements of p_1.
 """
+
+""" This module is deprecated, and its features will be merged with deck_sim in due time. """
+
+## UTILITY FUNCTIONS ##
 def choose(n, k):
     """
     A fast way to calculate binomial coefficients by Andrew Dalke.
@@ -45,8 +49,9 @@ def choose(n, k):
     else:
         return 0
 
-''' Takes input, returns a tuple of the relevant variables. '''
+## COMMAND-LINE INTERFACE ##
 def infoput():
+    """ Takes input, returns a tuple of the relevant variables. """
     element_sizes = {}
     pop_size = int(input('How many cards total? - '))
     var_1 = int(input('How many types of non-blank cards? - '))
@@ -68,8 +73,9 @@ def main():
     pop, ele, sam, req = testput()
     total = choose(pop,sam)
     hit_array = []
-    ''' Generates a list of representative sequences recursively.
-        See outline for details. '''
+
+    """ Generates a list of representative sequences recursively.
+        See outline for details. """
     
     def seq_gen(lst, p, rem):
         temp_list = list(lst)
@@ -81,7 +87,7 @@ def main():
             temp_list = list(lst)
             temp_rem = rem - i
             if temp_rem < 0: return None
-            if temp_rem == 0:
+            elif temp_rem == 0:
                 temp_list.append(rem)
                 for q in range(p+1, len(ele)): temp_list.append(0)
                 hit_array.append(temp_list)
@@ -117,21 +123,21 @@ class percentage_wrapper():
         return dict([(a, max([b[a] for b in self.x_axis]))
                             for a in range(self.x_arity)])
 
-    def set_typenames(self, string_list = ['']*self.x_arity):
-        for i in range(x_arity):
+    ##def set_typenames(self, string_list = ['']*self.x_arity):
+    ##    for i in range(x_arity):
             
     
-    ''' Returns X in x_ax such that s_pair[0] <= X[position] <= s_pair[1] '''
     def interval_select(self, r, x_ax, s_p):
+        """ Returns X in x_ax such that s_pair[0] <= X[position] <= s_pair[1] """
         s_p = (0, self.x_arity - 1) if s_p == () else s_p
         if s_p[0]-1 > s_p[1]: raise ValueError("empty interval.")
         if r >= len(x_ax[0]): raise IndexError("position out of bounds.")
 
         return [x for x in x_ax if x[r] in range(s_p[0], s_p[1]+1)]
 
-    ''' Takes a list of interval pairs and returns a list of coordinates in 
-        x_axis which are within the specified ranges. '''
     def comp_int_select(self, selection_dict):
+        """ Takes a list of interval pairs and returns a list of coordinates in 
+            x_axis which are within the specified ranges. """
         out = self.x_axis
         if len(selection_dict) != self.x_arity:
             raise IndexError("Selection dict must be {0} pairs big.".format(
@@ -140,8 +146,8 @@ class percentage_wrapper():
             out = self.interval_select(i, out, selection_dict[i])
         return out
 
-    ''' Creates a selection dictionary using user input. '''            
     def selection_creator(self):
+        """ Creates a selection dictionary using user input. """            
         selection = {}
         for i in range(self.x_arity):
             a = input('Minimum cards of type {0}? - '.format(i+1))
@@ -149,8 +155,8 @@ class percentage_wrapper():
             selection[i] = (int(a) if a!='' else None, int(b) if b!='' else None)
         return selection
 
-    ''' Gives percentage chance of user input coming out true. '''
     def main(self):
+        """ Gives percentage chance of user input coming out true. """
         s = self.selection_creator()
         return sum([self.mem[x] for x in self.comp_int_select(s)])
 
