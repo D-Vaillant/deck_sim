@@ -48,12 +48,24 @@ class InductiveDeck(Deck):
     def main(self):
         sampleSize, trialCount, symbolReqs = self.get_information()
         
-        successList = [self.minimum_tester(self.run_trial(sampleSize), symbolReqs)
+        successList = [self.minimum_tester(
+                            self.run_trial(sampleSize), symbolReqs)
                             for x in range(trialCount)]
         print("Success rate: {0}%.".format((successList.count(True))/trialCount)
 
     def get_information(self):
-        return 7, 50, {'A':2, 'B':4}
+        sz = int(input('How many cards total? - '))
+        
+        char_inc = lambda x: chr(ord(x)+1)
+        ch = 'A'
+        _ = True
+        part_dict = {}
+        
+        print("Enter 0 to terminate partition size entry.")
+        while(_):
+            _ = int(input("How many cards of symbol {}?".format(ch)))
+            if _: part_dict[ch] = _
+
 
     """ Adds probability methods which rely on running trials. """
     def run_trial(self, sample_size):
@@ -74,19 +86,23 @@ class InductiveDeck(Deck):
         return isSuccessful
 
 class CombinatoricDeck(Deck):
-    pass
+    def choose(n, k):
+        """ A fast way to calculate binomial coefficients by Andrew Dalke. """
+        if 0 <= k <= n:
+            ntok = 1
+            ktok = 1
+            for t in range(1, min(k, n - k) + 1):
+                ntok *= n
+                ktok *= t
+                n -= 1
+            return ntok // ktok
+        else:
+            return 0
 
-    ### BELOW LIES ONLY DESPAIR ###
-''' Returns a shuffled deck with pop_size elements according to the
-    distribution in element_sizes. '''
-def deck_creation(element_sizes, pop_size):
-    deck = []
-    for i in range(len(element_sizes)):
-        deck.extend([i] * element_sizes[i])
-    shuffle(deck)
-    return deck
 
+### HERE LIES THINGS ###
 ''' Takes a distribution array (element_sizes), a population size, and the
+
     size of cards to be sampled. Has error correction to ensure that the sum
     of the distribution array matches the population size. 
     Creates a deck and iterates over sample_size cards to determine counts of
@@ -95,7 +111,6 @@ def deck_creation(element_sizes, pop_size):
     successes. '''
 def main():
     element_sizes = []
-    pop_size = int(input('How many cards total? - '))
     var_2 = int(input('How many types of non-blank cards? - '))
     total = 0
     for i in range(var_2):
