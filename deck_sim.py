@@ -28,13 +28,15 @@ class Deck():
         
         self.getInformation() # Gets sample_size and partition from user input
         self.cards = self.generateCardArr() # creates array of "cards"
-        
-        self.generateRepresentatives() # creates self.representatives
-
+       # creates self.representatives
+        self.representatives = []
+        self.generateRepresentatives(self.sample_size)
     def getInformation(self):
         if not self.sample_size:
+            pass
             ## Get sample size from user.
         if not self.partition:
+            pass
             ## Get partition data from user.
         pass
 
@@ -59,27 +61,29 @@ class Deck():
             dk.extend([self.cardSymbols[i]] * x)
         return dk
 
-    def generateRepresentatives(self, lst, length, remainder):
+    def generateRepresentatives(self, remainder, lst = [], partition_index = 0):
         """ Creates an array of all possible n-length samplings of cards. 
-            Usage: """
+            Usage: Remainder should be self.sample_size initially. """
 
-        temp_list = lst[:]
-        if p == len(ele)-1:
-            self.representatives.append(rem)
-            hit_array.append(temp_list)
-            return None
-        for i in range(ele[p]):
-            temp_list = list(lst)
-            temp_rem = rem - i
-            if temp_rem < 0: return None
-            elif temp_rem == 0:
-                temp_list.append(rem)
-                for q in range(p+1, len(ele)): temp_list.append(0)
+        if partition_index == len(self.partition): # Do I need this part?
+            ##self.representatives.append(rem)
+            if remainder == 0:
+                self.representatives.append(lst)
+            return 0
+        for i in range(self.partition[partition_index]+1):
+            temp_list = lst[:] # Copies list into new one.
+            temp_rem = remainder - i
+            if temp_rem < 0:
+                return None
+            elif temp_rem == 0: 
+                temp_list.append(remainder)
+                for q in range(partition_index+1, len(self.partition)): 
+                    temp_list.append(0)
                 self.representatives.append(temp_list)
                 return None
-            else:
-                temp_list.append(i)
-                seq_gen(temp_list, p+1, temp_rem)
+            else: # temp_rem > 0, i.e. "more elements needed".
+                temp_list.append(i) # tack on i to rep_arr
+                self.generateRepresentatives(temp_rem, temp_list, partition_index+1)
 
 
 
@@ -132,7 +136,7 @@ class InductiveDeck(Deck):
 
         return isSuccessful
 
-class Deck(Deck):
+class HypergeometricDeck(Deck):
     def __init__(self):
         self.main()
 
@@ -177,7 +181,7 @@ class Deck(Deck):
         """ Generates a list of representative sequences recursively.
             See outline for details. """
         
-                seq_gen([], 0, sam)
+                ##seq_gen([], 0, sam)
 
         A = dict()
         for x in hit_array:
@@ -241,7 +245,11 @@ class percentage_wrapper():
         s = self.selection_creator()
         return sum([self.mem[x] for x in self.comp_int_select(s)])
 
- 
+
+def representTester(partitionArr, representationArr):
+    summationArr = [sum(partitionArr) == sum(x) for x in representationArr]
+    lessThanArr = [[x >= y for x, y in zip(partitionArr, R)] for R in representationArr]
+
 ### HERE LIES THINGS ###
 ''' Takes a distribution array (element_sizes), a population size, and the
 
