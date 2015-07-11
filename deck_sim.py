@@ -21,15 +21,24 @@ class Deck():
     cardSymbols = {i+1 : chr(ord('A')+i) for i in range(26)}
     cardSymbols.update({0:'_'})
 
-    def __init__(self, sz, partArr = None, isShuffled = False):
-        self.size = sz
-
-        self.partition = partArr or [sz]
-        self.partitionChecker() 
+    def __init__(self, p_arr = None, s_sz = None):
+        self.sample_size = s_sz
+        self.partition = p_arr
+        ##self.partitionChecker() 
         
-        self.cards = self.generateCardArr()
-        if isShuffled: shuffle(self.cards)
+        self.getInformation() # Gets sample_size and partition from user input
+        self.cards = self.generateCardArr() # creates array of "cards"
+        
+        self.generateRepresentatives() # creates self.representatives
 
+    def getInformation(self):
+        if not self.sample_size:
+            ## Get sample size from user.
+        if not self.partition:
+            ## Get partition data from user.
+        pass
+
+    """
     def partitionChecker(self):
         partSum = sum(self.partition)
 
@@ -40,7 +49,8 @@ class Deck():
         elif partSum < self.size:
             self.partition.insert(0, self.size - partSum)
         else: pass
-        
+    """
+
     def generateCardArr(self):
         """ Takes self.size and self.partition and generates a deck. """
 
@@ -48,6 +58,30 @@ class Deck():
         for i, x in enumerate(self.partition):
             dk.extend([self.cardSymbols[i]] * x)
         return dk
+
+    def generateRepresentatives(self, lst, length, remainder):
+        """ Creates an array of all possible n-length samplings of cards. 
+            Usage: """
+
+        temp_list = lst[:]
+        if p == len(ele)-1:
+            self.representatives.append(rem)
+            hit_array.append(temp_list)
+            return None
+        for i in range(ele[p]):
+            temp_list = list(lst)
+            temp_rem = rem - i
+            if temp_rem < 0: return None
+            elif temp_rem == 0:
+                temp_list.append(rem)
+                for q in range(p+1, len(ele)): temp_list.append(0)
+                self.representatives.append(temp_list)
+                return None
+            else:
+                temp_list.append(i)
+                seq_gen(temp_list, p+1, temp_rem)
+
+
 
 class InductiveDeck(Deck):
     def main(self):
@@ -98,7 +132,7 @@ class InductiveDeck(Deck):
 
         return isSuccessful
 
-class CombinatoricDeck(Deck):
+class Deck(Deck):
     def __init__(self):
         self.main()
 
@@ -143,26 +177,7 @@ class CombinatoricDeck(Deck):
         """ Generates a list of representative sequences recursively.
             See outline for details. """
         
-        def seq_gen(lst, p, rem):
-            temp_list = list(lst)
-            if p == len(ele)-1:
-                temp_list.append(rem)
-                hit_array.append(temp_list)
-                return None
-            for i in range(ele[p]):
-                temp_list = list(lst)
-                temp_rem = rem - i
-                if temp_rem < 0: return None
-                elif temp_rem == 0:
-                    temp_list.append(rem)
-                    for q in range(p+1, len(ele)): temp_list.append(0)
-                    hit_array.append(temp_list)
-                    return None
-                else:
-                    temp_list.append(i)
-                    seq_gen(temp_list, p+1, temp_rem)
-
-        seq_gen([], 0, sam)
+                seq_gen([], 0, sam)
 
         A = dict()
         for x in hit_array:
