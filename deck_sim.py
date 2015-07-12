@@ -4,7 +4,14 @@
                 Checks whether or not occurrences of each type exceed
                 specified threshold and returns true or false.
                 Repeats above two procedures a specified number of times
-                and reports the percentage of repetitions which return true."""
+                and reports the percentage of repetitions which return true.
+                
+    Representative: An array which represents the possible combinations of 
+                drawing sample_size cards. For a Deck with N symbols {a,b..z}
+                a representative has the form [x_a, x_b..x_z] where
+                    x_i <= Deck.count(i) 
+                for all i and 
+                    sum(x_a...x_z) = Deck.sample_size. """
 
 __author__ = "David Vaillant"
 
@@ -21,23 +28,34 @@ class Deck():
     cardSymbols = {i+1 : chr(ord('A')+i) for i in range(26)}
     cardSymbols.update({0:'_'})
 
-    def __init__(self, p_arr = None, s_sz = None):
+    def __init__(self, s_sz = None, p_arr = None):
         self.sample_size = s_sz
         self.partition = p_arr
         ##self.partitionChecker() 
         
         self.getInformation() # Gets sample_size and partition from user input
         self.cards = self.generateCardArr() # creates array of "cards"
-       # creates self.representatives
+        # creates self.representatives
         self.representatives = []
         self.generateRepresentatives(self.sample_size)
+
     def getInformation(self):
         if not self.sample_size:
-            pass
-            ## Get sample size from user.
+            self.sample_size = int(input("Enter sample population: "))
         if not self.partition:
-            pass
-            ## Get partition data from user.
+            entry = 0
+            partition_index = 0
+            while(entry >= 0 and partition_index < 27):
+                print("Running partition entry.")
+                print("Enter a negative value to stop partition entry.")
+                
+                entry = int(input("Enter number of {} instances: ".format(
+                                   cardSymbols[partition_index])))
+                try:
+                    self.partition[partition_index] = entry
+                except IndexError:
+                    print("Index overflow error. Only 26 symbols possible.")
+                    break
         pass
 
     """
@@ -62,29 +80,34 @@ class Deck():
         return dk
 
     def generateRepresentatives(self, remainder, lst = [], partition_index = 0):
-        """ Creates an array of all possible n-length samplings of cards. 
-            Usage: Remainder should be self.sample_size initially. """
+        """ Creates an array of all possible n-length samplings of cards.
+                We call these "representatives".
+            Usage: Remainder should be self.sample_size initially. 
+            This one's a bit of a doozy, so hang in there. """
 
-        if partition_index == len(self.partition): # Do I need this part?
-            ##self.representatives.append(rem)
-            if remainder == 0:
-                self.representatives.append(lst)
-            return 0
+        if partition_index == len(self.partition): 
+            # Enter this part if we've gone over any symbol.
+            if not remainder: self.representatives.append(lst) 
+            return 0 # Shut down the recursion.
+
         for i in range(self.partition[partition_index]+1):
-            temp_list = lst[:] # Copies list into new one.
+            # i is a candidate for the representative.
+            temp_list = lst[:] 
             temp_rem = remainder - i
-            if temp_rem < 0:
-                return None
-            elif temp_rem == 0: 
-                temp_list.append(remainder)
+            if temp_rem < 0: return None # Terminate if i is too large. 
+            elif temp_rem == 0:
+                # Finish the representative up if i would make it sum up to 
+                # sample_size. 
+                temp_list.append(i)
                 for q in range(partition_index+1, len(self.partition)): 
-                    temp_list.append(0)
+                    temp_list.append(0) 
                 self.representatives.append(temp_list)
                 return None
             else: # temp_rem > 0, i.e. "more elements needed".
                 temp_list.append(i) # tack on i to rep_arr
-                self.generateRepresentatives(temp_rem, temp_list, partition_index+1)
-
+                self.generateRepresentatives(temp_rem, temp_list, 
+                                             partition_index+1)
+                # Go back through for the next symbol in the representative.
 
 
 class InductiveDeck(Deck):
@@ -111,7 +134,8 @@ class InductiveDeck(Deck):
         
         print("Enter 0 to terminate partition size entry.")
         while(_):
-            _ = int(input("Required number of cards of symbol {}:  ".format(ch)))
+            _ = int(
+                input("Required number of cards of symbol {}:  ".format(ch)))
             if _: 
                 part_dict[ch] = _
                 char_inc(ch)
@@ -137,8 +161,9 @@ class InductiveDeck(Deck):
         return isSuccessful
 
 class HypergeometricDeck(Deck):
-    def __init__(self):
-        self.main()
+    def __init__(self, p_arr = None, s_sz = None):
+        Deck.__init__(self, p_arr, s_sz) 
+        ##self.main()
 
     def infoput(self):
         """ Takes input, returns a tuple of the relevant variables. """
@@ -248,7 +273,13 @@ class percentage_wrapper():
 
 def representTester(partitionArr, representationArr):
     summationArr = [sum(partitionArr) == sum(x) for x in representationArr]
-    lessThanArr = [[x >= y for x, y in zip(partitionArr, R)] for R in representationArr]
+    lessThanArr = [[x >= y for x, y in zip(partitionArr, R)] 
+                           for R in representationArr]
+    out = True
+    for x in summationArr: out = x and out
+    for x in lessThanArr: out = x.count(True) and out
+    
+    return out
 
 ### HERE LIES THINGS ###
 ''' Takes a distribution array (element_sizes), a population size, and the
