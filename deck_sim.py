@@ -57,7 +57,7 @@ class Deck():
                 except IndexError:
                     print("Index overflow error..")
                     break
-       return 
+        return
 
     def generateCardArr(self):
         """ Takes self.size and self.partition and generates a deck. """
@@ -101,16 +101,15 @@ class Deck():
 class InductiveDeck(Deck):
     def __init__(self, p_arr = None, s_sz = None, num_trials = 0):
         Deck.__init__(self, p_arr, s_sz)
-
+        
         if num_trials > 0:
             self.trial_count = num_trials
         else:
-            self.getTrialInformation()
+            self.trial_count = int(input("Enter number of trials: "))
+            print("Trial count set to {}.".format(self.trial_count))
+
+        return
             
-    def getTrialInformation(self):
-        self.trial_count = int(input("Enter number of trials: "))
-        print("Trial count set to {}.".format(self.trial_count))
-        
     """
     def main(self):
         sampleSize, trialCount, symbolReqs = self.get_information_unit()
