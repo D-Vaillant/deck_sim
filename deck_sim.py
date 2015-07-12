@@ -31,10 +31,10 @@ class Deck():
     def __init__(self, s_sz = None, p_arr = None):
         self.sample_size = s_sz
         self.partition = p_arr
-        ##self.partitionChecker() 
         
         self.getInformation() # Gets sample_size and partition from user input
         self.cards = self.generateCardArr() # creates array of "cards"
+        
         # creates self.representatives
         self.representatives = []
         self.generateRepresentatives(self.sample_size)
@@ -42,6 +42,7 @@ class Deck():
     def getInformation(self):
         if not self.sample_size:
             self.sample_size = int(input("Enter sample population: "))
+            print("Sample size set to {}.".format(self.sample_size))
         if not self.partition:
             entry = 0
             partition_index = 0
@@ -54,22 +55,9 @@ class Deck():
                 try:
                     self.partition[partition_index] = entry
                 except IndexError:
-                    print("Index overflow error. Only 26 symbols possible.")
+                    print("Index overflow error..")
                     break
-        pass
-
-    """
-    def partitionChecker(self):
-        partSum = sum(self.partition)
-
-        if partSum > self.size:
-            print("Partition summed to ", partSum, ".")
-            print("However, size was specified as ", self.size, ".")
-            raise ArithmeticError("Partition too large!")
-        elif partSum < self.size:
-            self.partition.insert(0, self.size - partSum)
-        else: pass
-    """
+       return 
 
     def generateCardArr(self):
         """ Takes self.size and self.partition and generates a deck. """
@@ -111,6 +99,19 @@ class Deck():
 
 
 class InductiveDeck(Deck):
+    def __init__(self, p_arr = None, s_sz = None, num_trials = 0):
+        Deck.__init__(self, p_arr, s_sz)
+
+        if num_trials > 0:
+            self.trial_count = num_trials
+        else:
+            self.getTrialInformation()
+            
+    def getTrialInformation(self):
+        self.trial_count = int(input("Enter number of trials: "))
+        print("Trial count set to {}.".format(self.trial_count))
+        
+    """
     def main(self):
         sampleSize, trialCount, symbolReqs = self.get_information_unit()
         
@@ -118,12 +119,13 @@ class InductiveDeck(Deck):
                             self.run_trial(sampleSize), 
                             symbolReqs)
                        for x in range(trialCount)]
-        print("Success rate: {0}%.".format((successList.count(True))/trialCount))
+        print("Success rate: {0}%.".format((successList.count(True)) \
+                                                       /trialCount))
 
-    def get_information_unit(self):
+    def getInformation_unit(self):
         return 7, 10000, {'A': 2}
 
-    def get_information(self):
+    def getInformation(self):
         sz = int(input('Sample size: '))
         tr = int(input('Trial count: '))
 
@@ -140,12 +142,12 @@ class InductiveDeck(Deck):
                 part_dict[ch] = _
                 char_inc(ch)
         return sz, tr, part_dict
-
+    """
 
     """ Adds probability methods which rely on running trials. """
-    def run_trial(self, sample_size):
+    def runTrial(self):
         shuffle(self.cards)
-        return Counter(self.cards[:sample_size])
+        return Counter(self.cards[:self.sample_size])
 
     def tester(self, trialResults, minRequired):
         """ Takes a Counter from run_trial and a min. requirement dict, returns True or False. """
@@ -164,7 +166,8 @@ class HypergeometricDeck(Deck):
     def __init__(self, p_arr = None, s_sz = None):
         Deck.__init__(self, p_arr, s_sz) 
         ##self.main()
-
+    
+    """
     def infoput(self):
         """ Takes input, returns a tuple of the relevant variables. """
         element_sizes = {}
@@ -183,6 +186,7 @@ class HypergeometricDeck(Deck):
         requirelist = [(i, int(input("How many cards of type {0} ".format(i+1) +
                              "should be drawn? - "))) for i in range(var_1)]
         return pop_size, element_sizes, sample_size, requirelist
+    """
 
     @staticmethod
     def choose(n, k):
@@ -203,11 +207,6 @@ class HypergeometricDeck(Deck):
         total = self.choose(pop,sam)
         hit_array = []
 
-        """ Generates a list of representative sequences recursively.
-            See outline for details. """
-        
-                ##seq_gen([], 0, sam)
-
         A = dict()
         for x in hit_array:
             product = 1
@@ -218,6 +217,10 @@ class HypergeometricDeck(Deck):
         
     def testput(self):
         return 60, {0: 20, 1: 20, 2: 10, 3: 10}, 7, 2
+
+""" PRESENTATION CLASS
+Translates a map from a representative array to percentages to a
+user-readable format. """
 
 class percentage_wrapper():
     def __init__(self, memory, type_dist = None):
@@ -271,10 +274,12 @@ class percentage_wrapper():
         return sum([self.mem[x] for x in self.comp_int_select(s)])
 
 
-def representTester(partitionArr, representationArr):
-    summationArr = [sum(partitionArr) == sum(x) for x in representationArr]
-    lessThanArr = [[x >= y for x, y in zip(partitionArr, R)] 
-                           for R in representationArr]
+""" UNIT TESTING FUNCTIONS """
+def representTester(deckObject):
+    summationArr = [deckObject.sample_size == sum(x) 
+                    for x in deckObject.representatives]
+    lessThanArr = [[x >= y for x, y in zip(deckObject.partition, R)] 
+                           for R in deckObject.representatives]
     out = True
     for x in summationArr: out = x and out
     for x in lessThanArr: out = x.count(True) and out
