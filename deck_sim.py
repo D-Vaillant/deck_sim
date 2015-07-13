@@ -106,6 +106,7 @@ class Deck():
 
 
 class InductiveDeck(Deck):
+    """ Adds probability methods which rely on running trials. """
     def __init__(self, s_sz = None, p_arr = None, num_trials = 0):
         Deck.__init__(self, s_sz, p_arr)
         
@@ -117,77 +118,31 @@ class InductiveDeck(Deck):
 
         return
             
-    """
-    def main(self):
-        sampleSize, trialCount, symbolReqs = self.get_information_unit()
-        
-        successList = [self.tester(
-                            self.run_trial(sampleSize), 
-                            symbolReqs)
-                       for x in range(trialCount)]
-        print("Success rate: {0}%.".format((successList.count(True)) \
-                                                       /trialCount))
-
-    def getInformation_unit(self):
-        return 7, 10000, {'A': 2}
-
-    def getInformation(self):
-        sz = int(input('Sample size: '))
-        tr = int(input('Trial count: '))
-
-        char_inc = lambda x: chr(ord(x)+1)
-        ch = 'A'
-        _ = True
-        part_dict = {}
-        
-        print("Enter 0 to terminate partition size entry.")
-        while(_):
-            _ = int(
-                input("Required number of cards of symbol {}:  ".format(ch)))
-            if _: 
-                part_dict[ch] = _
-                char_inc(ch)
-        return sz, tr, part_dict
-    """
-
-    """ Adds probability methods which rely on running trials. """
     def trialRun(self):
         shuffle(self.cards)
         cc = Counter(self.cards[:self.sample_size])
         return tuple(cc[x] for x in range(len(self.partition)))
 
-    def trialMaster(self):
+    def main(self):
         cm = Counter()
         for x in range(self.trial_count): cm[self.trialRun()] += 1
 
-        return cm
+        return {x:(y/self.trial_count) for x, y in cm.items()} 
+
 
 class HypergeometricDeck(Deck):
-    def __init__(self, p_arr = None, s_sz = None):
-        Deck.__init__(self, p_arr, s_sz) 
-        ##self.main()
-    
-    """
-    def infoput(self):
-         Takes input, returns a tuple of the relevant variables. 
-        element_sizes = {}
-        pop_size = int(input('How many cards total? - '))
-        var_1 = int(input('How many types of non-blank cards? - '))
-        total = 0
-        for i in range(var_1):
-            a = int(input('How many cards of type {0}? - '.format(i+1)))
-            total += a
-            if total > pop_size: raise ValueError("Population overflow.")
-            element_sizes[i] = a
-        if total < pop_size:    
-            element_sizes[i+1] = pop_size - total
-        print("Current card distribution: {0}".format(element_sizes))
-        sample_size = int(input("How many cards will be drawn? - "))
-        requirelist = [(i, int(input("How many cards of type {0} ".format(i+1) +
-                             "should be drawn? - "))) for i in range(var_1)]
-        return pop_size, element_sizes, sample_size, requirelist
-    """
+    def main(self):
+        total_size = sum(self.partition)
+        total_comb = self.choose(total_size, self.sample_size)
 
+        A = dict()
+        for x in self.representatives:
+            product = 1
+            for index, symbols_drawn in enumerate(x):
+                product *= self.choose(self.partition[index], symbols_drawn)
+            A[x] = product/total_comb
+        return A
+        
     @staticmethod
     def choose(n, k):
         """ A fast way to calculate binomial coefficients by Andrew Dalke. """
@@ -200,23 +155,6 @@ class HypergeometricDeck(Deck):
                 n -= 1
             return ntok // ktok
         else:
-            return 0
-
-    def main(self):
-        pop, ele, sam, req = self.testput()
-        total = self.choose(pop,sam)
-        hit_array = []
-
-        A = dict()
-        for x in hit_array:
-            product = 1
-            for y in range(len(x)):
-                product *= self.choose(ele[y], x[y])
-            A[tuple(x)] = product/total
-        return percentage_wrapper(A)
-        
-    def testput(self):
-        return 60, {0: 20, 1: 20, 2: 10, 3: 10}, 7, 2
 
 """ PRESENTATION CLASS
 Translates a map from a representative array to percentages to a
@@ -285,59 +223,3 @@ def representTester(deckObject):
     for x in lessThanArr: out = x.count(True) and out
     
     return out
-
-### HERE LIES THINGS ###
-''' Takes a distribution array (element_sizes), a population size, and the
-
-    size of cards to be sampled. Has error correction to ensure that the sum
-    of the distribution array matches the population size. 
-    Creates a deck and iterates over sample_size cards to determine counts of
-    each type of card. Returns a map from types to counts. '''
-''' Takes variables via command line input and calculates percentage of
-    successes. '''
-def main():
-    element_sizes = []
-    var_2 = int(input('How many types of non-blank cards? - '))
-    total = 0
-    for i in range(var_2):
-        a = int(input('How many cards of type {0}? - '.format(i+1)))
-        total += a
-        if total > pop_size:
-            print('Population overflow.')
-            return NONE
-        element_sizes.append(a)
-    if total < pop_size:    
-        element_sizes.append(pop_size - total)
-    print("Current card distribution: {0}".format(element_sizes))
-    sample_size = int(input("How many cards will be drawn? - "))
-    requirelist = [(i, int(input("How many cards of type {0} ".format(i+1) +
-                         "should be drawn? - "))) for i in range(var_2)]
-    requirement_dict = dict(requirelist)
-    runs = int(input("How many trials will be run? - "))
-    results = [run_trial(element_sizes, pop_size, sample_size)
-               for x in range(runs)]
-    successes = minimum_tester(results, requirement_dict)
-    print("Drew all cards {0}% of the time.".format((successes/runs)*100))
-    boole = bool(input("Repeat? (Hit enter to terminate.) - "))
-    while boole:
-        sample_size = int(input("How many cards will be drawn? - "))
-        results = [run_trial(element_sizes, pop_size, sample_size)
-               for x in range(runs)]
-        successes = minimum_tester(results, requirement_dict)
-        print("Drew all cards {0}% of the time.".format((successes/runs)*100))
-        boole = bool(input("Repeat? (Hit enter to terminate.) - "))
-
-''' Allows manual setting of variables. '''
-def lazymain():
-    runs = 10000
-    element_sizes = [19, 31]
-    pop_size = sum(element_sizes)
-    sample_size = 20
-    var_2 = len(element_sizes) - 1
-    requirelist = [(i, int(input("How many cards of type {0} ".format(i+1) +
-                         "should be drawn? - "))) for i in range(var_2)]
-    requirement_dict = dict(requirelist)
-    results = [run_trial(element_sizes, pop_size, sample_size)
-               for x in range(runs)]
-    successes = minimum_tester(results, requirement_dict)
-    print("Drew all cards {0}% of the time.".format((successes/runs)*100))
