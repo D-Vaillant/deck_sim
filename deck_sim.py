@@ -64,7 +64,7 @@ class Deck():
 
         dk = []
         for i, x in enumerate(self.partition):
-            dk.extend([self.cardSymbols[i]] * x)
+            dk.extend([i] * x)
         return dk
 
     def generateRepresentatives(self, remainder, lst = [], partition_index = 0):
@@ -75,7 +75,7 @@ class Deck():
 
         if partition_index == len(self.partition): 
             # Enter this part if we've gone over any symbol.
-            if not remainder: self.representatives.append(lst) 
+            if not remainder: self.representatives.append(tuple(lst)) 
             return 0 # Shut down the recursion.
 
         for i in range(self.partition[partition_index]+1):
@@ -89,7 +89,7 @@ class Deck():
                 temp_list.append(i)
                 for q in range(partition_index+1, len(self.partition)): 
                     temp_list.append(0) 
-                self.representatives.append(temp_list)
+                self.representatives.append(tuple(temp_list))
                 return None
             else: # temp_rem > 0, i.e. "more elements needed".
                 temp_list.append(i) # tack on i to rep_arr
@@ -97,10 +97,17 @@ class Deck():
                                              partition_index+1)
                 # Go back through for the next symbol in the representative.
 
+    def __str__(self):
+        out = '|'.join([self.cardSymbols[x] for x in self.cards])
+        out += '\n'
+        out += ("Sample size: {}\n"
+                "Partition: {}".format(self.sample_size, self.partition))
+        return out
+
 
 class InductiveDeck(Deck):
-    def __init__(self, p_arr = None, s_sz = None, num_trials = 0):
-        Deck.__init__(self, p_arr, s_sz)
+    def __init__(self, s_sz = None, p_arr = None, num_trials = 0):
+        Deck.__init__(self, s_sz, p_arr)
         
         if num_trials > 0:
             self.trial_count = num_trials
@@ -144,22 +151,16 @@ class InductiveDeck(Deck):
     """
 
     """ Adds probability methods which rely on running trials. """
-    def runTrial(self):
+    def trialRun(self):
         shuffle(self.cards)
-        return Counter(self.cards[:self.sample_size])
+        cc = Counter(self.cards[:self.sample_size])
+        return tuple(cc[x] for x in range(len(self.partition)))
 
-    def tester(self, trialResults, minRequired):
-        """ Takes a Counter from run_trial and a min. requirement dict, returns True or False. """
-        isSuccessful = True 
+    def trialMaster(self):
+        cm = Counter()
+        for x in range(self.trial_count): cm[self.trialRun()] += 1
 
-        for symbol, req in minRequired.items():
-            if trialResults[symbol] < req: 
-                pass
-            else: 
-                isSuccessful = False
-                break
-
-        return isSuccessful
+        return cm
 
 class HypergeometricDeck(Deck):
     def __init__(self, p_arr = None, s_sz = None):
@@ -168,7 +169,7 @@ class HypergeometricDeck(Deck):
     
     """
     def infoput(self):
-        """ Takes input, returns a tuple of the relevant variables. """
+         Takes input, returns a tuple of the relevant variables. 
         element_sizes = {}
         pop_size = int(input('How many cards total? - '))
         var_1 = int(input('How many types of non-blank cards? - '))
