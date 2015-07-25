@@ -155,14 +155,33 @@ class HypergeometricDeck(Deck):
                 n -= 1
             return ntok // ktok
         else:
+            return 0
+
+"""
+def tuple_append(tup, x):
+    lst = list(tup)
+    list.append(x)
+    return tuple(lst)
+
+def novel_range(reprD, level):
+    num =  
+
+def matrix_maker(repr_dict, level = None, *args):
+    if level = None: level = len(list(repr_dict.keys())[0])
+    if level == 0:
+        return repr_dict[*args]
+    elif level == 1:
+        return [matrix_maker(repr_dict, level-1, tuple_append(tmp, x)) for x in novel_range(repr_dict, level)]
+"""
+
 
 """ PRESENTATION CLASS
 Translates a map from a representative array to percentages to a
 user-readable format. """
 
 class percentage_wrapper():
-    def __init__(self, memory, type_dist = None):
-        self.mem = memory
+    def __init__(self, map_repr_to_percentages):
+        self.map = map_repr_to_percentages
         self.x_axis = [x for x in memory.keys()]
         self.x_arity = len(self.x_axis[0])
         self.typenames = {}
